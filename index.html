@@ -70,7 +70,7 @@ async function generateCodes() {
       const a=document.createElement("a"); a.href=url; a.download="StudentCodes.csv"; a.click(); URL.revokeObjectURL(url);
       setTimeout(()=>{ window.location.href=landingPage; },3000);
     }
-  } catch(err){ msg.textContent="⚠️ Error connecting to server. Make sure Apps Script is deployed."; msg.style.color="orange"; fadeMessage(msg); console.error(err);}
+  } catch(err){ msg.textContent="⚠️ Error connecting to server. "; msg.style.color="orange"; fadeMessage(msg); console.error(err);}
 }
 
 function fadeMessage(el){ el.style.opacity=1; setTimeout(()=>{ el.style.opacity=0; },3000);}
