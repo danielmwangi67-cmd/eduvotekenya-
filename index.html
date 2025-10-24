@@ -1,194 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>EduVote Kenya | Teacher Dashboard</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    overflow: hidden;
-    height: 100vh;
-    color: #fff;
-    background: radial-gradient(#003366, #000000);
-  }
-
-  canvas#starsCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 0;
-  }
-
-  .container {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    background: rgba(0,0,0,0.6);
-    padding: 40px;
-    border-radius: 25px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.4);
-    width: 350px;
-  }
-
-  h1 {
-    font-size: 36px;
-    background: linear-gradient(90deg, #ffd700, #00ff88, #003366);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: colorflow 3s linear infinite;
-  }
-
-  @keyframes colorflow {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-  }
-
-  input {
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    width: 80%;
-    font-size: 16px;
-    margin-top: 20px;
-    text-align: center;
-  }
-
-  button {
-    margin-top: 20px;
-    padding: 12px 25px;
-    font-weight: bold;
-    font-size: 16px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-
-  #verifyBtn { background: #ffd700; color: #003366; }
-  #verifyBtn:hover { background: #003366; color: #ffd700; transform: scale(1.05); }
-
-  #generateBtn { background: #00ff88; color: #003366; display: none; }
-  #generateBtn:hover { background: #003366; color: #00ff88; transform: scale(1.05); }
-
-  #message { margin-top: 20px; font-weight: bold; transition: opacity 1s; }
-</style>
+  <meta charset="UTF-8" />
+  <title>EduVote Kenya – Generate Student Codes</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(to right, #003366, #00ff88, #ffd700);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      color: #0d1b2a;
+      overflow: hidden;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .box {
+      padding: 50px;
+      border-radius: 25px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 1;
+    }
+    h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #003366, #ffd700, #003366);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: colorflow 3s linear infinite;
+    }
+    @keyframes colorflow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 18px;
+      background: #ffd700;
+      color: #003366;
+      cursor: pointer;
+      transition: 0.3s ease-in-out;
+    }
+    button:hover {
+      background: #003366;
+      color: #ffd700;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    #message {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    canvas {
+      position: fixed;
+      top:0;
+      left:0;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
-<canvas id="starsCanvas"></canvas>
-<canvas id="confettiCanvas" style="position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+  <canvas id="confettiCanvas"></canvas>
+  <div class="box">
+    <h2>EduVote Kenya – Teacher Dashboard</h2>
+    <p>Click below to generate student codes and download CSV:</p>
+    <input type="text" id="schoolCode" placeholder="Enter your School Code" />
+    <button onclick="generateCodes()">Generate Student Codes</button>
+    <button onclick="redirectToDashboard()">Go to Google Site Dashboard</button>
+    <div id="message"></div>
+  </div>
 
-<div class="container">
-  <h1>EduVote Kenya – Teacher Dashboard</h1>
-  <p>Enter your School Code:</p>
-  <input type="text" id="schoolCode" placeholder="Enter School Code">
-  <br>
-  <button id="verifyBtn" onclick="verifyCode()">Verify School Code</button>
-  <button id="generateBtn" onclick="generateStudentCodes()">Generate Student Codes</button>
-  <div id="message"></div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxjWlZmWqQCbp3tWaJ_RCCOcjpdc28H0O8EsoXzuB31F4dlQP1MO0BmXTQLSbttmN_c/exec"; // Apps Script Web App URL
+    const dashboardURL = "https://www.eduvotekenya.co.ke/home";
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-<script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbyOsagrvbI2E22L2aif93LwZ2qrsoTs1sBEEfK6DPhVFOjtb2L5egZyYFALoQHLbTlK/exec";
-const googleSiteURL = "https://www.eduvotekenya.co.ke/home";
-let verifiedCode = "";
-
-// ---------- School Code Verification ----------
-function verifyCode() {
-  const code = document.getElementById("schoolCode").value.trim();
-  const msg = document.getElementById("message");
-  if(!code){ msg.textContent="⚠️ Enter your school code!"; msg.style.color="orange"; fadeMsg(msg); return; }
-
-  msg.textContent="Checking..."; msg.style.color="#00ff88";
-
-  fetch(`${scriptURL}?action=verify&code=${encodeURIComponent(code)}`)
-  .then(res => res.json())
-  .then(data => {
-    if(data.valid){
-      msg.textContent="✅ Verified! Click to generate student codes";
-      msg.style.color="#00ff88"; fadeMsg(msg);
-      verifiedCode = code;
-      document.getElementById("generateBtn").style.display="inline-block";
-      launchConfetti();
-    } else {
-      msg.textContent="❌ Invalid or already used code"; msg.style.color="red"; fadeMsg(msg);
+    function redirectToDashboard() {
+      window.location.href = dashboardURL;
     }
-  }).catch(err=>{
-    msg.textContent="⚠️ Error connecting to server"; msg.style.color="orange"; fadeMsg(msg);
-  });
-}
 
-// ---------- Student Codes Generation ----------
-function generateStudentCodes() {
-  if(!verifiedCode) return;
-  const msg = document.getElementById("message");
-  msg.textContent="Generating student codes..."; msg.style.color="#00ff88";
+    async function generateCodes() {
+      const code = document.getElementById("schoolCode").value.trim();
+      const msg = document.getElementById("message");
 
-  fetch(`${scriptURL}?action=downloadStudents&code=${encodeURIComponent(verifiedCode)}`)
-  .then(res=>res.text())
-  .then(csv=>{
-    downloadCSV(csv, "student_codes.csv");
-    msg.textContent="✅ CSV Downloaded! Redirecting...";
-    msg.style.color="#00ff88"; fadeMsg(msg);
-    setTimeout(()=>{ window.location.href = googleSiteURL; }, 2500);
-  }).catch(err=>{
-    msg.textContent="⚠️ Error generating student codes"; msg.style.color="orange"; fadeMsg(msg);
-  });
-}
+      if (!code) {
+        msg.textContent = "Please enter your school code.";
+        msg.style.color = "orange";
+        return;
+      }
 
-function downloadCSV(content, filename){
-  const blob = new Blob([content], {type:"text/csv"});
-  const url = URL.createObjectURL(blob);
-  const a=document.createElement("a"); a.href=url; a.download=filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
-}
+      msg.textContent = "Generating codes...";
+      msg.style.color = "#003366";
 
-function fadeMsg(el){ el.style.opacity=1; setTimeout(()=>{el.style.opacity=0;},3000); }
+      try {
+        const res = await fetch(`${scriptURL}?action=downloadStudents&code=${encodeURIComponent(code)}`);
+        const csv = await res.text();
 
-// ---------- Confetti ----------
-function launchConfetti(){
-  const duration=2*1000; const end=Date.now()+duration;
-  (function frame(){
-    confetti({particleCount:5, angle:60, spread:55, origin:{x:0.1}, colors:['#ffd700','#00ff88','#003366']});
-    confetti({particleCount:5, angle:120, spread:55, origin:{x:0.9}, colors:['#ffd700','#00ff88','#003366']});
-    if(Date.now()<end) requestAnimationFrame(frame);
-  })();
-}
+        if (csv.startsWith("❌")) {
+          msg.textContent = csv;
+          msg.style.color = "red";
+          return;
+        }
 
-// ---------- Twinkling Stars Background ----------
-const starsCanvas = document.getElementById('starsCanvas');
-const ctx = starsCanvas.getContext('2d');
-starsCanvas.width = window.innerWidth; starsCanvas.height = window.innerHeight;
-const stars = [];
-const STAR_COUNT = 150;
+        // Trigger CSV download
+        const blob = new Blob([csv], {type: "text/csv"});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "EduVote_Student_Codes.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
 
-for(let i=0;i<STAR_COUNT;i++){
-  stars.push({x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, r:Math.random()*1.5, alpha:Math.random()});
-}
+        msg.textContent = "✅ Student codes generated and CSV downloaded!";
+        msg.style.color = "green";
+        launchConfetti();
+      } catch(err) {
+        msg.textContent = "⚠️ Error connecting to server. Try again.";
+        msg.style.color = "orange";
+      }
+    }
 
-function animateStars(){
-  ctx.clearRect(0,0,starsCanvas.width, starsCanvas.height);
-  stars.forEach(s=>{
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,2*Math.PI);
-    ctx.fillStyle=`rgba(255,255,255,${s.alpha})`;
-    ctx.fill();
-    s.alpha += (Math.random()-0.5)*0.02;
-    if(s.alpha>1) s.alpha=1;
-    if(s.alpha<0) s.alpha=0;
-  });
-  requestAnimationFrame(animateStars);
-}
-animateStars();
+    function launchConfetti() {
+      const duration = 2 * 1000;
+      const end = Date.now() + duration;
+      const colors = ['#ffd700', '#003366', '#00ff88'];
 
-window.addEventListener('resize', ()=>{
-  starsCanvas.width = window.innerWidth;
-  starsCanvas.height = window.innerHeight;
-});
-</script>
+      (function frame() {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors
+        });
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    }
+  </script>
 </body>
 </html>
+
 
