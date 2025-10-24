@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EduVote Kenya | Landing Page</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #003366, #001f4d);
+      overflow: hidden;
+      color: #fff;
+    }
+    .container {
+      background: rgba(255,255,255,0.1);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    h1 {
+      font-size: 32px;
+      background: linear-gradient(90deg, #ffd700, #00ff88, #003366);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: colorflow 5s linear infinite;
+    }
+    @keyframes colorflow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    input {
+      padding: 12px;
+      width: 250px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      margin-top: 20px;
+      text-align: center;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #ffd700, #00ff88);
+      color: #003366;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    button:hover {
+      transform: scale(1.1) rotate(-2deg);
+      box-shadow: 0 0 20px rgba(255,255,255,0.5);
+      background: linear-gradient(90deg, #00ff88, #003366, #ffd700);
+      color: #fff;
+    }
+    button::after {
+      content: '';
+      position: absolute;
+      left: -50%;
+      top: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+      transform: scale(0);
+      transition: transform 0.5s;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    button:active::after {
+      transform: scale(1);
+      transition: 0s;
+    }
+    #message {
+      margin-top: 20px;
+      font-weight: bold;
+      transition: opacity 1s;
+    }
+    #downloadLink {
+      display: none;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #ffd700;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: #003366;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    #downloadLink:hover {
+      background: #00ff88;
+      color: #003366;
+      transform: scale(1.05);
+    }
+    canvas.starfield {
+      position: fixed;
+      top:0; left:0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas class="starfield"></canvas>
+  <div class="container">
+    <h1>EduVote Kenya – School Landing Page</h1>
+    <p>Enter your School Verification Code:</p>
+    <input type="text" id="code" placeholder="Enter School Code">
+    <button onclick="verifyAndGenerate()">Generate & Download Student Codes</button>
+    <div id="message"></div>
+    <a id="downloadLink">Download CSV</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzjmSrKeC6SQBBC0XjDhwzvS3_I3lleFHiMGwm9G7LpfwXi-XEy16tK6ccwXr_49rJz/exec"; // Apps Script Web App
+    const dashboardURL = "https://www.eduvotekenya.co.ke/home";
+
+    const msg = document.getElementById('message');
+    const downloadLink = document.getElementById('downloadLink');
+
+    async function verifyAndGenerate() {
+      const code = document.getElementById("code").value.trim();
+      if(!code) { showMessage("Please enter your school code", "orange"); return; }
+
+      showMessage("Verifying code...", "#00ff88");
+      
+      try {
+        const res = await fetch(`${scriptURL}?action=verify&code=${encodeURIComponent(code)}`);
+        const data = await res.json();
+
+        if(!data.valid) { showMessage("❌ Invalid or unpaid code", "red"); return; }
+
+        showMessage("✅ Verified! Generating student codes...", "green");
+        launchConfetti();
+
+        // Generate/download student codes CSV
+        const csvRes = await fetch(`${scriptURL}?action=download&code=${encodeURIComponent(code)}`);
+        const csvText = await csvRes.text();
+        const blob = new Blob([csvText], {type: 'text/csv'});
+        const url = URL.createObjectURL(blob);
+
+        downloadLink.href = url;
+        downloadLink.download = `EduVote_StudentCodes_${code}.csv`;
+        downloadLink.style.display = 'inline-block';
+        downloadLink.textContent = "📥 Download Student Codes CSV";
+
+        // After 5 seconds redirect to dashboard
+        setTimeout(() => {
+          window.location.href = dashboardURL;
+        }, 5000);
+
+      } catch(err) {
+        showMessage("⚠️ Error connecting to server. Try again.", "orange");
+        console.error(err);
+      }
+    }
+
+    function showMessage(text, color) {
+      msg.textContent = text;
+      msg.style.color = color;
+      msg.style.opacity = 1;
+      setTimeout(()=>{msg.style.opacity=0;},3000);
+    }
+
+    function launchConfetti() {
+      const duration = 2000;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({particleCount: 5, spread: 55, origin:{x:0}, colors:['#ffd700','#003366','#00ff88']});
+        confetti({particleCount: 5, spread: 55, origin:{x:1}, colors:['#ffd700','#003366','#00ff88']});
+        if(Date.now()<end) requestAnimationFrame(frame);
+      })();
+    }
+
+    // Starfield background
+    const canvas = document.querySelector('.starfield');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const stars = Array.from({length: 150}, () => ({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      radius: Math.random()*1.2,
+      speed: Math.random()*0.5
+    }));
+
+    function animateStars() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "#fff";
+      stars.forEach(s => {
+        s.y += s.speed;
+        if(s.y>canvas.height){ s.y=0; s.x=Math.random()*canvas.width; }
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI*2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateStars);
+    }
+    animateStars();
+  </script>
+</body>
+</html>
