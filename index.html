@@ -1,215 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>EduVote Kenya | Student Code Generator</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: 'Poppins', sans-serif;
-      color: #ffffff;
-      height: 100%;
-      background: #0b0c1e;
-    }
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
-    .box {
-      position: relative;
-      z-index: 10;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
-      background: rgba(0, 0, 0, 0.7);
-      text-align: center;
-      max-width: 400px;
-      margin: auto;
-    }
-    h2 {
-      font-size: 28px;
-      background: linear-gradient(90deg, #003366, #ffd700, #003366);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: colorflow 3s linear infinite;
-    }
-    @keyframes colorflow {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
-    }
-    p { color: #ffd700; font-weight: 500; }
-    input {
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      width: 250px;
-      text-align: center;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-    button {
-      display: block;
-      margin: 20px auto 0;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 16px;
-      background: #ffd700;
-      color: #0d1b2a;
-      cursor: pointer;
-      transition: 0.3s ease-in-out;
-    }
-    button:hover {
-      background: #003366;
-      color: #ffd700;
-      transform: scale(1.05);
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
-    #message { margin-top: 20px; font-weight: bold; transition: opacity 1s ease; }
-  </style>
+<meta charset="UTF-8">
+<title>EduVote Kenya | Student Code Generator</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    font-family: 'Poppins', sans-serif; height: 100%; background: #0b0c1e; color: #fff;
+  }
+  canvas { position: fixed; top:0; left:0; z-index:-1; }
+  .box {
+    position: relative; z-index:10;
+    padding: 40px; border-radius:20px;
+    box-shadow:0 0 25px rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.7); text-align:center; max-width:450px; margin:auto;
+  }
+  h2 {
+    font-size: 28px;
+    background: linear-gradient(90deg, #ff0055, #ffcc00, #00ccff, #ff00ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: colorflow 5s linear infinite;
+  }
+  @keyframes colorflow { 0% { background-position:0% 50%; } 100% { background-position:100% 50%; } }
+  p { color:#ffd700; font-weight:500; }
+  input {
+    padding:12px; border-radius:10px; border:none;
+    width:250px; text-align:center; margin-top:10px; font-size:16px;
+  }
+  button {
+    display:block; margin:20px auto 0;
+    padding:12px 25px; border:none; border-radius:10px;
+    font-weight:bold; font-size:16px;
+    background:#ffd700; color:#0d1b2a; cursor:pointer; transition:0.3s;
+  }
+  button:hover { background:#003366; color:#ffd700; transform:scale(1.05); box-shadow:0 0 15px rgba(0,0,0,0.4); }
+  #message { margin-top:20px; font-weight:bold; transition:opacity 1s ease; }
+</style>
 </head>
 <body>
-  <canvas id="bgCanvas"></canvas>
-  <div class="box">
-    <h2>EduVote Kenya – Student Code Generator</h2>
-    <p>Enter your School Code below</p>
-    <input type="text" id="code" placeholder="Enter School Code" />
-    <button onclick="generateCodes()">Generate Student Codes</button>
-    <div id="message"></div>
-  </div>
+<canvas id="bgCanvas"></canvas>
+<div class="box">
+  <h2>EduVote Kenya – Student Code Generator</h2>
+  <p>Enter your School Code below</p>
+  <input type="text" id="code" placeholder="Enter School Code" />
+  <button onclick="generateCodes()">Generate Student Codes</button>
+  <div id="message"></div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwZCQJhJ9SxZaJPCup7zl69ERw6WkLAoAPoSPVvG63yhQXHS3IMWtACU_awfSGWtwT4/exec"; // Apps Script URL
-    const landingPage = "https://www.eduvotekenya.co.ke/home";
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbxIucbHOf4KAufvmAu1tdIG3HD0GCUo8bF0v3e1gyhLHAWhuPxt8oHEnPY7Odk1Ei8e/exec"; // Apps Script URL
+const landingPage = "https://www.eduvotekenya.co.ke/home";
 
-    async function generateCodes() {
-      const code = document.getElementById("code").value.trim();
-      const msg = document.getElementById("message");
+async function generateCodes() {
+  const code = document.getElementById("code").value.trim();
+  const msg = document.getElementById("message");
+  if(!code){ msg.textContent="Please enter your school code."; msg.style.color="orange"; fadeMessage(msg); return; }
+  msg.textContent="Processing..."; msg.style.color="#00ffcc";
 
-      if (!code) {
-        msg.textContent = "Please enter your school code.";
-        msg.style.color = "orange";
-        fadeMessage(msg);
-        return;
-      }
-
-      msg.textContent = "Processing...";
-      msg.style.color = "#00ffcc";
-
-      try {
-        const res = await fetch(`${scriptURL}?action=generateStudentCodes&code=${encodeURIComponent(code)}`);
-        const text = await res.text();
-
-        if (text.includes("❌")) {
-          msg.textContent = text;
-          msg.style.color = "red";
-          fadeMessage(msg);
-        } else {
-          msg.textContent = "✅ Student codes generated! Downloading CSV...";
-          msg.style.color = "#00ff88";
-          launchConfetti();
-
-          const blob = new Blob([text], { type: "text/csv" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "StudentCodes.csv";
-          a.click();
-          URL.revokeObjectURL(url);
-
-          setTimeout(() => { window.location.href = landingPage; }, 3000);
-        }
-      } catch(err) {
-        msg.textContent = "⚠️ Error connecting to server. Try again.";
-        msg.style.color = "orange";
-        fadeMessage(msg);
-      }
+  try {
+    const res = await fetch(`${scriptURL}?action=generateStudentCodes&code=${encodeURIComponent(code)}`);
+    const text = await res.text();
+    if(text.includes("❌")){ msg.textContent=text; msg.style.color="red"; fadeMessage(msg); }
+    else{
+      msg.textContent="✅ Student codes generated! Downloading CSV..."; msg.style.color="#00ff88";
+      launchConfetti();
+      const blob = new Blob([text], {type:"text/csv"});
+      const url = URL.createObjectURL(blob);
+      const a=document.createElement("a"); a.href=url; a.download="StudentCodes.csv"; a.click(); URL.revokeObjectURL(url);
+      setTimeout(()=>{ window.location.href=landingPage; },3000);
     }
+  } catch(err){ msg.textContent="⚠️ Error connecting to server. Make sure Apps Script is deployed."; msg.style.color="orange"; fadeMessage(msg); console.error(err);}
+}
 
-    function fadeMessage(element) {
-      element.style.opacity = 1;
-      setTimeout(() => { element.style.opacity = 0; }, 3000);
-    }
+function fadeMessage(el){ el.style.opacity=1; setTimeout(()=>{ el.style.opacity=0; },3000);}
+function launchConfetti(){ const end = Date.now()+2000; (function frame(){ const colors=['#ffd700','#ff00ff','#00ff88','#00ccff','#ff5500']; confetti({particleCount:6, angle:60, spread:60, origin:{x:0}, colors:colors}); confetti({particleCount:6, angle:120, spread:60, origin:{x:1}, colors:colors}); if(Date.now()<end) requestAnimationFrame(frame); })(); }
 
-    function launchConfetti() {
-      const duration = 2 * 1000;
-      const end = Date.now() + duration;
-      (function frame() {
-        const colors = ['#ffd700','#003366','#00ff88'];
-        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
-        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-    }
+// Star/Nebula Animation with Twinkle
+const canvas=document.getElementById('bgCanvas');
+const ctx=canvas.getContext('2d');
+let stars=[],shootingStars=[],nebulaOffset=0;
 
-    // Animated Star/Nebula Background
-    const canvas = document.getElementById('bgCanvas');
-    const ctx = canvas.getContext('2d');
-    let stars = [];
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
 
-    function initStars() {
-      stars = [];
-      for(let i=0;i<150;i++){
-        stars.push({
-          x: Math.random()*canvas.width,
-          y: Math.random()*canvas.height,
-          r: Math.random()*1.5,
-          d: Math.random()*0.5
-        });
-      }
-    }
-    initStars();
+function initStars(){
+  stars=[]; shootingStars=[];
+  for(let i=0;i<200;i++){ stars.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    r:Math.random()*2,
+    d:Math.random()*1.5,
+    alpha: Math.random(),
+    dAlpha: Math.random()*0.02,
+    color:`hsl(${Math.random()*360},80%,70%)`
+  }); }
+}
+initStars();
 
-    function drawStars() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      // Nebula gradient
-      let grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width/1.5);
-      grad.addColorStop(0,'rgba(0,50,100,0.3)');
-      grad.addColorStop(0.5,'rgba(100,50,150,0.1)');
-      grad.addColorStop(1,'rgba(0,0,50,0.1)');
-      ctx.fillStyle=grad;
-      ctx.fillRect(0,0,canvas.width,canvas.height);
+function drawStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-      // stars
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      for(let i=0;i<stars.length;i++){
-        let s = stars[i];
-        ctx.moveTo(s.x,s.y);
-        ctx.arc(s.x,s.y,s.r,0,Math.PI*2,true);
-      }
-      ctx.fill();
-      moveStars();
-    }
+  // Nebula gradient slowly moves
+  nebulaOffset += 0.2;
+  const grad=ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2+nebulaOffset,canvas.height/2,canvas.width/1.5);
+  grad.addColorStop(0,'rgba(255,100,200,0.2)');
+  grad.addColorStop(0.5,'rgba(100,100,255,0.1)');
+  grad.addColorStop(1,'rgba(0,0,50,0.1)');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    function moveStars(){
-      for(let i=0;i<stars.length;i++){
-        let s=stars[i];
-        s.y += s.d;
-        if(s.y>canvas.height) { s.y=0; s.x=Math.random()*canvas.width; }
-      }
-    }
+  // Stars with twinkle
+  ctx.beginPath();
+  stars.forEach(s=>{
+    s.alpha += s.dAlpha;
+    if(s.alpha>1 || s.alpha<0) s.dAlpha*=-1;
+    ctx.fillStyle=`hsla(${Math.random()*360},80%,70%,${s.alpha})`;
+    ctx.moveTo(s.x,s.y);
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2,true);
+  });
+  ctx.fill();
 
-    function animate(){
-      drawStars();
-      requestAnimationFrame(animate);
-    }
-    animate();
-  </script>
+  moveStars(); drawShootingStars();
+}
+
+function moveStars(){ stars.forEach(s=>{ s.y+=s.d; if(s.y>canvas.height){ s.y=0; s.x=Math.random()*canvas.width; } }); }
+
+function drawShootingStars(){
+  if(Math.random()<0.02){ shootingStars.push({x:Math.random()*canvas.width, y:0, len:Math.random()*200+100, speed:Math.random()*8+4}); }
+  ctx.strokeStyle="#ffffff"; ctx.lineWidth=2;
+  shootingStars.forEach((s,i)=>{ ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+s.len*0.5,s.y+s.len); ctx.stroke(); s.y+=s.speed; if(s.y>canvas.height){ shootingStars.splice(i,1); } });
+}
+
+function animate(){ drawStars(); requestAnimationFrame(animate); }
+animate();
+</script>
 </body>
 </html>
+
 
 
 
