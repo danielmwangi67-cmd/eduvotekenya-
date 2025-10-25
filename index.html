@@ -20,7 +20,8 @@ canvas { position: fixed; top:0; left:0; z-index:-1; }
 h2 {
   font-size: 28px;
   background: linear-gradient(90deg,#ff0055,#ffcc00,#00ccff,#ff00ff);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
   animation: colorflow 5s linear infinite;
 }
 @keyframes colorflow { 0%{background-position:0% 50%;} 100%{background-position:100% 50%;} }
@@ -87,9 +88,12 @@ async function generateCodes() {
     const res = await fetch(`${scriptURL}?action=generateStudentCodes&code=${encodeURIComponent(code)}`);
     const text = await res.text();
 
-    if(text.includes("❌")){ msg.textContent=text; msg.style.color="red"; fadeMessage(msg); }
-    else{
-      msg.textContent="✅ Student codes generated! Downloading CSV..."; msg.style.color="#00ff88";
+    if(!text || text.includes("❌") || text.toLowerCase().includes("no student code")) {
+      msg.textContent="❌ No student code found or invalid code.";
+      msg.style.color="red"; fadeMessage(msg);
+    } else {
+      msg.textContent="✅ Student codes generated! Downloading CSV...";
+      msg.style.color="#00ff88";
       launchConfetti();
 
       const blob = new Blob([text], {type:"text/csv"});
@@ -97,7 +101,6 @@ async function generateCodes() {
       const a=document.createElement("a"); a.href=url; a.download="StudentCodes.csv"; a.click();
       URL.revokeObjectURL(url);
 
-      // Show Back button
       backBtn.style.display = "block";
     }
   } catch(err){ 
@@ -108,7 +111,7 @@ async function generateCodes() {
 
 function backToDashboard() {
   launchConfetti();
-  setTimeout(() => { window.location.href = dashboardURL; }, 500);
+  setTimeout(()=>{ window.location.href = dashboardURL; },500);
 }
 
 function fadeMessage(el){ el.style.opacity=1; setTimeout(()=>{ el.style.opacity=0; },3000);}
@@ -124,7 +127,7 @@ window.addEventListener('resize',resizeCanvas); resizeCanvas();
 
 function initStars(){
   stars=[]; shootingStars=[];
-  for(let i=0;i<200;i++){ stars.push({
+  for(let i=0;i<250;i++){ stars.push({
     x:Math.random()*canvas.width,
     y:Math.random()*canvas.height,
     r:Math.random()*2,
@@ -139,10 +142,10 @@ initStars();
 function drawStars(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  nebulaOffset+=0.2;
-  const grad=ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2+nebulaOffset,canvas.height/2,canvas.width/1.5);
-  grad.addColorStop(0,'rgba(255,100,200,0.2)');
-  grad.addColorStop(0.5,'rgba(100,100,255,0.1)');
+  nebulaOffset+=0.3;
+  const grad=ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2+nebulaOffset,canvas.height/2,canvas.width/1.2);
+  grad.addColorStop(0,'rgba(255,100,200,0.25)');
+  grad.addColorStop(0.5,'rgba(100,100,255,0.15)');
   grad.addColorStop(1,'rgba(0,0,50,0.1)');
   ctx.fillStyle=grad; ctx.fillRect(0,0,canvas.width,canvas.height);
 
@@ -160,7 +163,7 @@ function drawStars(){
 function moveStars(){ stars.forEach(s=>{ s.y+=s.d; if(s.y>canvas.height){ s.y=0; s.x=Math.random()*canvas.width; } }); }
 
 function drawShootingStars(){
-  if(Math.random()<0.02){ shootingStars.push({x:Math.random()*canvas.width, y:0, len:Math.random()*200+100, speed:Math.random()*8+4}); }
+  if(Math.random()<0.03){ shootingStars.push({x:Math.random()*canvas.width, y:0, len:Math.random()*200+100, speed:Math.random()*8+4}); }
   ctx.strokeStyle="#ffffff"; ctx.lineWidth=2;
   shootingStars.forEach((s,i)=>{ ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x+s.len*0.5,s.y+s.len); ctx.stroke(); s.y+=s.speed; if(s.y>canvas.height){ shootingStars.splice(i,1); } });
 }
@@ -170,6 +173,7 @@ animate();
 </script>
 </body>
 </html>
+
 
 
 
